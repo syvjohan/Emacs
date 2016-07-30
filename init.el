@@ -147,13 +147,13 @@ typedef double                real64;
 (global-set-key (kbd "C-c o")
   'ff-find-other-file)
 
-;;Indentation
-(global-set-key (kbd "<tab>")
-  'tab-indentation)
-
 ;;Alignment
 (global-set-key (kbd "C-c r")
   'alignmnet)
+
+;;indent
+(global-set-key (kbd "<backtab>")
+  'indent-for-tab-command)
 
 ;-----------------------------Functions-----------------------------
 
@@ -300,10 +300,152 @@ sEnter function name: ")
   (set-cursor-color "#cc9900"))
 
 (defun set-font-style ()
-  "Set font size"
+  "Set font style"
   (interactive)
-  (set-face-attribute 'default nil :height 120)
-  (set-face-attribute 'modeline-buffer-id nil :foreground "dark orange"))
+  (let ((backgroundColor "gray15"))              
+    (global-hl-line-mode 1)
+    (set-face-background 'hl-line "gray20")
+    (set-face-attribute 'region nil :background "dim grey")
+    (set-background-color backgroundColor)
+    (set-foreground-color "PeachPuff3")
+    (add-to-list 'default-frame-alist '(font . "Courier New-12.0"))
+    (set-face-attribute 'default nil :height 120)
+    (set-face-attribute 'modeline-buffer-id nil :foreground "dark orange")
+    (set-face-attribute 'font-lock-builtin-face nil :foreground "#EBCA9F")
+    (set-face-attribute 'font-lock-comment-face nil :italic t :foreground "gray50")
+    (set-face-attribute 'font-lock-constant-face nil :foreground "lemon chiffon")
+    (set-face-attribute 'font-lock-doc-face nil :foreground "olive drab")
+    (set-face-attribute 'font-lock-function-name-face nil :bold t :foreground "DarkSeaGreen4")
+    (set-face-attribute 'font-lock-keyword-face nil :foreground "DarkGoldenrod")
+    (set-face-attribute 'font-lock-string-face nil :foreground "yellow3")
+    (set-face-attribute 'font-lock-type-face nil :foreground "lightgoldenrod3")
+    (set-face-attribute 'font-lock-variable-name-face nil :foreground "khaki4")
+    (set-face-attribute 'font-lock-warning-face nil :foreground "firebrick")
+    (set-face-attribute 'font-lock-negation-char-face nil :foreground "pink1")
+
+
+    (defface font-lock-operator-bracket-face
+      '((((class color) (background light))
+	 :background backgroundColor ))
+      "Basic face for highlighting bracket operator {} [] ()"
+      :group 'basic-faces)
+
+    (defface font-lock-operator-arithmetic-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting arithmetic operators + - / * % "
+      :group 'basic-faces)
+
+    (defface font-lock-operator-relational-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting relational operators != ==  < > <= >= "
+      :group 'basic-faces)
+
+    (defface font-lock-operator-bitwise-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting bitwise operators & | ^ ~ << >>"
+      :group 'basic-faces)
+
+    (defface font-lock-operator-logical-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting logical operators && || !"
+      :group 'basic-faces)
+
+    (defface font-lock-operator-assignment-face
+      '((((class color) (min-colors 88) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting assignment operators = += -= *= /= &= <<= >>= ^= |= "
+      :group 'basic-faces)
+
+    (defface font-lock-operator-misc-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting sizeof() ? :  sizeof"
+      :group 'basic-faces)
+
+    (defface font-lock-operator-others-face
+      '((((class color) (background light))
+	 :background backgroundColor))
+      "Basic face for highlighting double font/backslash // \ . , -> "
+      :group 'basic-faces)
+
+    (defface font-lock-print-keywords-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting print keywords."
+      :group 'basic-faces)
+
+    (defface font-lock-char-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting '."
+      :group 'basic-faces)
+
+    (defface font-lock-semicolon-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting semicolon"
+      :group 'basic-faces)
+
+    
+    (defface font-lock-loop-keywords-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting loop keywords"
+      :group 'basic-faces)
+
+    
+    (defface font-lock-if-keyword-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting if keyword"
+      :group 'basic-faces)    
+
+     (defface font-lock-const-keyword-face
+      '((((class color)(background light))
+	 :background backgroundColor))
+      "Basic face for highlighting const keyword"
+      :group 'basic-faces)  
+    
+    (set-face-foreground 'font-lock-operator-bracket-face "darkseagreen4")
+    (set-face-foreground 'font-lock-operator-arithmetic-face "cadetblue")
+    (set-face-foreground 'font-lock-operator-relational-face "rosybrown3")
+    (set-face-foreground 'font-lock-operator-bitwise-face "rosybrown3")
+    (set-face-foreground 'font-lock-operator-logical-face "grey")
+    (set-face-foreground 'font-lock-operator-assignment-face "DarkOliveGreen")
+    (set-face-foreground 'font-lock-operator-misc-face "cyan2")
+    (set-face-foreground 'font-lock-operator-others-face "lavenderblush3")
+    (set-face-foreground 'font-lock-print-keywords-face "indianred4")
+    (set-face-foreground 'font-lock-char-face "yellow")
+    (set-face-foreground 'font-lock-semicolon-face "DarkGoldenrod")
+    (set-face-foreground 'font-lock-loop-keywords-face "cyan2")
+    (set-face-foreground 'font-lock-if-keyword-face "cyan2")
+    (set-face-foreground 'font-lock-const-keyword-face "cadetBlue")
+    
+    ;;Issue for operators <= >= |= to make it work i needed to add
+    ;;one whitespace before these 3 operators.
+    (font-lock-add-keywords 'c++-mode
+			    '(("<<=\\|>>=" 0 'font-lock-operator-assignment-face)
+			      (">>\\|<<" 0 'font-lock-operator-bitwise-face) 
+			      ("->" 0 'font-lock-operator-others-face) 
+			      ("!=\\|==\\|>\\|<\\| >=\\| <=" 0 'font-lock-operator-relational-face) 
+			      ("=\\|+=\\|-=\\|*=\\|/=\\|&=\\|\\^=\\|\\ |=" 0 'font-lock-operator-assignment-face)
+			      ("&&\\|!\\|||" 0 'font-lock-operator-logical-face) 
+			      ("}\\|]\\|)\\|{\\|(\\|\\[" 0 'font-lock-operator-bracket-face)
+			      (",\\|\\.\\|//\\|\\\\" 0 'font-lock-operator-others-face) 
+			      ("/\\|*\\|%\\|-\\|\\+" 0 'font-lock-operator-arithmetic-face)
+			      ("\|\\|&\\|~\\|\\^" 0 'font-lock-operator-bitwise-face) 
+			      ("\?\\|:\\|sizeof" 0 'font-lock-operator-misc-face) 
+			      ("\\<\\(printf\\|cout\\|endl\\)\\>" 0 'font-lock-print-keywords-face)
+			      ("\\<\\(for\\|foreach\\|while\\|do\\)\\>" 0 'font-lock-loop-keywords-face) 
+			      ("\\<\\(if\\|else\\)\\>" 0 'font-lock-if-keyword-face) 
+			      ("const" 0 'font-lock-const-keyword-face)
+			      ("'" 0 'font-lock-char-face) 
+			      (";" 0 'font-lock-semicolon-face)))))
+
 
 (defun split-window-at-start-up ()
   (split-window-horizontally))
@@ -371,11 +513,6 @@ sEnter function name: ")
    (region-beginning) (region-end)
    "\\(\\s-*\\) = " 1 0 nil))
 
-(defun tab-indentation ()
-  "insert 4 whitespaces"
-  (interactive)
-  (insert "    "))
-
 (defun smarter-move-to-beginning-of-line (arg)
 "Smarter function for moving to the start of a line"
   (interactive "^p")
@@ -392,9 +529,14 @@ sEnter function name: ")
       (move-beginning-of-line 1)))
   )
 
+(defun start-of-indented-line ()
+  (interactive)
+  (beginning-of-line)
+  (indent-for-tab-command))
+
 ;; Initialize package module.
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+
 (package-initialize)
 
 ;; Load plugins here :
@@ -412,8 +554,24 @@ sEnter function name: ")
   ;; Globally enable matching ([{}])
   (electric-pair-mode t)
 
-  ;(load-theme 'zenburn t)
+  ;;Change color on matching parantheses when cursor is on the paranthes.
+  (setq show-paren-delay 0)
+  (show-paren-mode 1)
+  
+  ;Global tab settings
+  (setq tab-width 4
+        indent-tabs-mode nil)
 
+  ; Word-based completion always on
+  (abbrev-mode t)
+  
+  ;;Set file extensions and their correct modes
+  (setq auto-mode-alist
+        (append
+         '(("\\.cpp$" . c++-mode)
+           ("\\.h$" . c++-mode)
+           ("\\.inl" . c++-mode)) auto-mode-alist))
+  
   (split-window-at-start-up)
   (set-cursor-style)
   (set-font-style))
@@ -432,11 +590,9 @@ sEnter function name: ")
             nil ))
 
 ; NOTE, Emacs considers .h files to be C, not C++.
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;-----------------------------Disble functionality-----------------------------
-
-;Disable tab
-(setq-default indent-tabs-mode nil)'disable-tab
 
 ;;Disable menu-bar
 (menu-bar-mode -1)
@@ -447,6 +603,10 @@ sEnter function name: ")
 ;;Disable sound
 (setq visible-bell 1)
 
+;;Disable line wrapping
+(set-default 'truncate-lines t)
+  
+
 ;-----------------------------custom-----------------------------
 
 ;;Full size window
@@ -455,7 +615,6 @@ sEnter function name: ")
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-enabled-themes (quote (wombat)))
  '(initial-frame-alist (quote ((fullscreen . maximized)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -463,4 +622,3 @@ sEnter function name: ")
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
