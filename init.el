@@ -155,8 +155,14 @@ typedef double                real64;
 (global-set-key (kbd "<backtab>")
   'indent-for-tab-command)
 
-;-----------------------------Functions-----------------------------
+;-----------------------------Emacs pluggins-----------------------------
+(require 'cc-mode)
+(require 'ido)
+(require 'compile)
+(load-library "view")
 
+
+;-----------------------------Functions-----------------------------
 (defun update-class (filepath)
   (interactive "s(Update class) Enter filePath: ")
   (let (pathHeader pathSource)
@@ -178,8 +184,7 @@ typedef double                real64;
       (insert-file-contents filepath)
       (read-word-from-string (buffer-string))
     )
-    (message "%s %s" "File does not exist: " filepath))
-)
+    (message "%s %s" "File does not exist: " filepath)))
   
 (defun read-word-from-string (string)
   (let (ch word)
@@ -308,8 +313,8 @@ sEnter function name: ")
     (set-face-attribute 'region nil :background "dim grey")
     (set-background-color backgroundColor)
     (set-foreground-color "PeachPuff3")
-    (add-to-list 'default-frame-alist '(font . "Courier New-12.0"))
-    (set-face-attribute 'default nil :height 120)
+    (add-to-list 'default-frame-alist '(font . "Courier New-13.0"))
+    (set-face-attribute 'default t :font "Courier New-13.0") 
     (set-face-attribute 'modeline-buffer-id nil :foreground "dark orange")
     (set-face-attribute 'font-lock-builtin-face nil :foreground "#EBCA9F")
     (set-face-attribute 'font-lock-comment-face nil :italic t :foreground "gray50")
@@ -389,14 +394,12 @@ sEnter function name: ")
 	 :background backgroundColor))
       "Basic face for highlighting semicolon"
       :group 'basic-faces)
-
     
     (defface font-lock-loop-keywords-face
       '((((class color)(background light))
 	 :background backgroundColor))
       "Basic face for highlighting loop keywords"
       :group 'basic-faces)
-
     
     (defface font-lock-if-keyword-face
       '((((class color)(background light))
@@ -449,6 +452,9 @@ sEnter function name: ")
 
 (defun split-window-at-start-up ()
   (split-window-horizontally))
+
+(defun maximize-window-at-startup ()
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
 
 (defun open-cmd ()
   "Opens shell inside emacs in a new frame and split window"
@@ -534,17 +540,96 @@ sEnter function name: ")
   (beginning-of-line)
   (indent-for-tab-command))
 
-;; Initialize package module.
-(require 'package)
+;;Bright-red TODOs and bright-green NOTE
+ (setq fixme-modes '(c++-mode c-mode emacs-lisp-mode))
+ (make-face 'font-lock-fixme-face)
+ (make-face 'font-lock-note-face)
+ (mapc (lambda (mode)
+         (font-lock-add-keywords
+          mode
+          '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
+            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
+        fixme-modes)
+ (modify-face 'font-lock-fixme-face "Red" nil nil t nil t nil nil)
+ (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
 
-(package-initialize)
+;;C++ Style
+(defconst my-cpp-style 
+  '((c-electric-pound-behavior . nil)
+    (c-tab-always-indent . t)
+    (c-comment-only-line-offset . 0)
+    (c-hanging-braces-alist . ((class-open)
+                               (class-close)
+                               (defun-open)
+                               (defun-close)
+                               (inline-open)
+                               (inline-close)
+                               (brace-list-open)
+                               (brace-list-close)
+                               (brace-list-intro)
+                               (brace-list-entry)
+                               (block-open)
+                               (block-close)
+                               (substatement-open)
+                               (statement-case-open)))
+    (c-hanging-colons-alist . ((inher-intro)
+                               (case-label)
+                               (label)
+                               (access-label)
+                               (access-key)
+                               (member-init-intro)))
+    (c-cleanup-list . (scope-operator
+                       list-close-comma
+                       defun-close-semi))
+    (c-offsets-alist . ((arglist-close . 0)
+                        (label . -4)
+                        (access-label . -4)
+                        (substatement-open . 0)
+                        (statement-case-intro . 4)
+                        (case-label . 4)
+                        (block-open . 0)
+                        (inline-open . 0)
+                        (topmost-intro-cont . 0)
+                        (knr-argdecl-intro . -4)
+                        (brace-list-open . 0)
+                        (brace-list-intro . 4)))
+    (c-echo-syntactic-information-p . t))
+  )
 
-;; Load plugins here :
-(require 'cc-mode)
-(require 'ido)
+;;C++ Hook
+(defun my-cpp-hook ()
+  (c-add-style "MyCpp" my-cpp-style t)
+  (c-set-style "MyCpp"))
 
-;; My Config
-(defun my-config ()
+(add-hook 'c-mode-common-hook 'my-cpp-hook)
+
+(defun my-startup-hook ()
+  (interactive)
+  (my-config))
+
+;;My Config
+(defun my-config ())
+  ;;Disable welcome screen
+  (setq inhibit-startup-message t)
+  
+  ;;Disable menu-bar
+  (menu-bar-mode -1)
+
+  ;;Disable toolbar
+  (tool-bar-mode -1)
+
+  ;;Disable sound
+  (setq visible-bell 1)
+
+  ;;Disable scroll bar
+  (scroll-bar-mode -1)
+  
+  ;word moving command will cursor into between camelCaseWords.
+  (global-subword-mode)
+  
+  ;;Disable line wrapping
+  (set-default 'truncate-lines t)
+  
   ;; Globally enable ido-mode (auto completion for filenames)
   (ido-mode t)
 
@@ -564,6 +649,9 @@ sEnter function name: ")
 
   ; Word-based completion always on
   (abbrev-mode t)
+
+  ;Disable line wrapping
+  (set-default 'truncate-lines t)
   
   ;;Set file extensions and their correct modes
   (setq auto-mode-alist
@@ -571,51 +659,37 @@ sEnter function name: ")
          '(("\\.cpp$" . c++-mode)
            ("\\.h$" . c++-mode)
            ("\\.inl" . c++-mode)) auto-mode-alist))
-  
+
+  ;;Fullscreen on startup
+  (maximize-window-at-startup)
+
+  ;;Split screen in 2 horizontally frames at start up
   (split-window-at-start-up)
+
+  ;;Changing cursor style
   (set-cursor-style)
-  (set-font-style))
 
-(defun my-startup-hook ()
-  (interactive)
-  (my-config)
-  (set-default 'truncate-lines t))
+  ;;Contains all font settings.
+  (set-font-style)
 
-(add-hook 'window-setup-hook 'my-startup-hook t)
+  ;;NOTE, Emacs considers .h files to be C, not C++.
+  (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+  )  
 
- ;; if indent-tabs-mode is off, untabify before saving
+;-----------------------------custom-----------------------------
+;;Untabify before saving
 (add-hook 'write-file-hooks 
           (lambda () (if (not indent-tabs-mode)
                          (untabify (point-min) (point-max)))
             nil ))
 
-; NOTE, Emacs considers .h files to be C, not C++.
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-
-;-----------------------------Disble functionality-----------------------------
-
-;;Disable menu-bar
-(menu-bar-mode -1)
-
-;;Disable toolbar
-(tool-bar-mode -1)
-
-;;Disable sound
-(setq visible-bell 1)
-
-;;Disable line wrapping
-(set-default 'truncate-lines t)
-  
-
-;-----------------------------custom-----------------------------
-
-;;Full size window
+(add-hook 'window-setup-hook 'my-startup-hook t)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(initial-frame-alist (quote ((fullscreen . maximized)))))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
