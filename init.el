@@ -1,7 +1,3 @@
-;;NOTE Below configuration is only tested in windows!
-
-;;Global variables
-(setq backgroundColor "gray15")
 
 ;;-----------------------------Emacs pluggins-----------------------------
 (require 'cc-mode)
@@ -9,12 +5,20 @@
 (require 'compile)
 (load-library "view")
 
-;-----------------------------Include-----------------------------------
-(add-hook 'find-file-hook 'my-c-cpp-hook)
-(defun my-c-cpp-hook ()
-  (when (string= (file-name-extension buffer-file-name) "cpp")
-    (load-file "~/.emacs.d/init_c_cpp.el")
-    ))
+
+;-----------------------------Global variables-----------------------------
+(defconst backgroundColor "gray15")
+
+;;Set file extensions and their correct modes
+(setq auto-mode-alist
+      (append
+       '(("\\.cpp$" . c++-mode)
+         ("\\.h$" . c++-mode)
+         ("\\.inl" . c++-mode)) auto-mode-alist))
+
+
+;;-----------------------------Includes-----------------------------
+(load-file "~/.emacs.d/themes.el")
 
 
 ;-----------------------------Key-bindings-----------------------------
@@ -50,40 +54,123 @@
 (global-set-key (kbd "C-x C-s")
   'save-current-buffer)
 
-(global-set-key (kbd "C-c b")
-  'set-c-cpp-style)
+;;Switch between header and source file
+(define-key c-mode-base-map (kbd "C-c o")
+  'ff-find-other-file)
 
-;;-----------------------------Style-----------------------------
-(defun set-font-style ()
-  "Set font style"
-  (interactive)             
-  (global-hl-line-mode 1)
-  (set-face-background 'hl-line "gray20")
-  (set-face-attribute 'region nil :background "dim grey")
-  (set-background-color backgroundColor)
-  (set-foreground-color "PeachPuff3")
-  (set-mouse-color "DarkOrange3")
-  (add-to-list 'default-frame-alist '(font . "Courier New-13.0"))
-  (set-face-attribute 'default nil :font "Courier New-13.0")
+;;Alignment
+(define-key c-mode-base-map (kbd "C-c r")
+  'alignmnet)
 
-  (set-face-attribute 'mode-line-highlight nil :background "dim grey")
-  (set-face-attribute 'modeline-buffer-id nil :foreground "DarkOrange3")
-  (set-face-attribute 'mode-line nil :background "gray30")
-  (set-face-attribute 'mode-line nil :foreground "gray100")
-  (set-face-attribute 'mode-line-inactive nil :foreground "gray100")
-  (set-face-attribute 'mode-line-inactive nil :background "gray20")
-  
-  (set-face-attribute 'font-lock-builtin-face nil :foreground "#EBCA9F")
-  (set-face-attribute 'font-lock-comment-face nil :italic t :foreground "gray50")
-  (set-face-attribute 'font-lock-constant-face nil :foreground "lemon chiffon")
-  (set-face-attribute 'font-lock-doc-face nil :foreground "olive drab")
-  (set-face-attribute 'font-lock-function-name-face nil :bold t :foreground "DarkSeaGreen4")
-  (set-face-attribute 'font-lock-keyword-face nil :foreground "DarkGoldenrod")
-  (set-face-attribute 'font-lock-string-face nil :foreground "yellow3")
-  (set-face-attribute 'font-lock-type-face nil :foreground "lightgoldenrod3")
-  (set-face-attribute 'font-lock-variable-name-face nil :foreground "khaki4")
-  (set-face-attribute 'font-lock-warning-face nil :foreground "firebrick")
-  (set-face-attribute 'font-lock-negation-char-face nil :foreground "pink1"))
+;;Update CLASS
+(define-key c-mode-base-map (kbd "C-c u")
+  'update-class )
+
+;;Create STRUCT
+(define-key c-mode-base-map (kbd "C-c s")
+  'create-struct)
+
+;;Create MAIN FILE
+(define-key c-mode-base-map (kbd "C-c m")
+  'create-main-file)
+
+;;Create TYPES FILE
+(define-key c-mode-base-map (kbd "C-c t")
+  'create-types-files)
+
+;;Insert FUNCTION COMMENT
+(define-key c-mode-base-map (kbd "C-c f")
+  'insert-function-comment)
+
+;;Insert BLOCK COMMENT
+(define-key c-mode-base-map (kbd "C-c b")   
+  'insert-block-comment)    
+
+;;Create CLASS
+(define-key c-mode-base-map (kbd "C-c c")
+  'create-class)
+
+;-----------------------------Prototypes-----------------------------
+;;Prototype source
+(setq sourceCode "//Include Librarys
+#include MyClass.h
+
+//Include Files
+
+
+//******
+//MyClass::MyClass
+//******
+MyClass::MyClass() {}
+
+//******
+//MyClass::~MyClass
+//******
+MyClass::~MyClass() {}
+
+")
+
+;;Prototype Header
+(setq headerCode "#ifndef MYCLASS_H
+#define MYCLASS_H
+
+//Include Librarys
+
+//Include Files
+
+
+//Forward declarations
+
+
+class MyClass {
+public:
+  MyClass();
+  ~MyClass();
+
+private:
+
+};
+
+#endif //!MYCLASS_H
+")
+
+;;Prototype Main
+(setq mainCode "//Include Librarys
+#include <iostream>
+
+//Include Files
+
+
+int main(int argc, char **argv) {
+
+
+system(pause);
+return 0;
+}
+")
+
+;;Prototype Types
+(setq typesCode "#ifndef TYPES_H
+#define TYPES_H
+
+// Integer types
+typedef unsigned char         uint8;
+typedef char                  int8;
+typedef unsigned short        uint16;
+typedef short                 int16;
+typedef unsigned int          uint32;
+typedef int                   int32;
+typedef unsigned long long    uint64;
+typedef long long             int64;
+
+// Float types
+typedef float                 real32;
+typedef double                real64;
+
+
+#endif // !TYPES_H
+")
+
 
 ;;-----------------------------Functions-----------------------------
 (defun search-word-in-build-file(string searchedKeyWord)
@@ -192,11 +279,168 @@
 (modify-face 'font-lock-fixme-face "Red" nil nil t nil t nil nil)
 (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
 
-(add-hook 'c-mode-common-hook 'my-config)
+(defun create-main-file (path)
+  (interactive "s(Create main.cpp file) Enter path: ")
 
-;;My Config
+  (setq path (concat path "/main.cpp"))
+  
+                                        ;Check if file exist in current directory
+  (if (file-exists-p path)
+      (message "%s" "Filename already exist, no file where created!")
+    (write-region mainCode nil path) ;Write to file.
+    (message "main.cpp was succesfully created!")))
+
+(defun create-struct (name)
+  (interactive "s(Create struct) Enter name: ")
+  (let ((name (update-to-name-conversion name)))
+    (insert "typedef struct " name " {\n\n};")
+    ))
+
+(defun insert-function-comment (class function)
+  (interactive "s(insert function comment) Enter class name:
+sEnter function name: ")
+
+  (if (string-equal class "")
+      (insert "// ******\n// " function "\n// ******")
+    (insert "// ******\n// " class "::" function "\n// ******")))
+
+(defun insert-block-comment ()
+  (interactive)
+  (insert " /**/ ")
+  (backward-char 3) ;decrement cursor position 2 steps.
+  (message "Inserted block comment!"))
+
+(defun create-types-file (path)
+  (interactive "s(Create Types.h file) Enter path: ")
+  
+  (setq path (concat path "/Types.h"))
+
+                                        ;Check if file exist in current directory
+  (if (file-exists-p path)
+      (message "%s" "Filename already exist, no file where created!")
+    (write-region typesCode nil path) ;Write to file.
+    (message "Types.h was succesfully created!")))
+
+(defun create-class (directory name)
+  "Create a new class(source and  header file."
+  (interactive "s(Create a new class) Enter path:
+sEnter class name: ")
+  
+  (let (path newSourceCode newHeaderCode pathSource pathHeader)
+    (setq directory (concat directory "/"))
+    (setq path (concat directory name))
+    (setq pathSource (concat path ".cpp"))
+    (setq pathHeader (concat path ".h"))
+
+    ;;Replace default class name with user specified class name
+    (setq newSourceCode (replace-word-in-string sourceCode name "MyClass"))
+    (setq newHeaderCode (replace-word-in-string headerCode name "MyClass"))
+
+    ;;Check if file exist in current directory
+    (if (and (file-exists-p pathSource)
+             (file-exists-p pathHeader))
+        (message "%s" "Filename already exist, no files where created!")
+      ;; else no files exist, create the new ones
+      (progn
+        (with-temp-file pathSource
+          (insert newSourceCode))
+        (with-temp-file pathHeader
+          (insert newHeaderCode))
+        (message "Created source file: %s\nCreated header file: %s"
+                 pathSource pathHeader)
+        ))
+    ))
+
+(defun update-class (filepath)
+  (interactive "s(Update class) Enter filePath: ")
+  (let (pathHeader pathSource)
+    (setq pathHeader (concat filepath ".h"))
+    (setq pathSource (concat filepath ".cpp"))
+    
+    (get-functions pathHeader)
+    
+                                        ;define function(s) in source file.
+                                        ;    (if (file-exists-p pathSource)
+                                        ;      append-to-file "hello" nil pathSource) ;do update
+                                        ;    (message "%s" "File does not exist"))
+    )
+  )
+
+(defun get-functions (filepath)
+  (if (file-exists-p filepath) 
+      (with-temp-buffer
+        (insert-file-contents filepath)
+        (read-word-from-string (buffer-string))
+        )
+    (message "%s %s" "File does not exist: " filepath)))
+
+;;c:/Programmering/test
+(defun build-cmd (projectPath)
+  "Send build command to shell"
+  (interactive "s(build and compile)Write project path: ")
+
+  ;;Search build.bat file and get data
+  (let (batPath fileContent)
+    (setq batPath (concat projectPath "c:/Programmering/build.bat"))
+    (if (file-exists-p batPath)
+        (with-temp-buffer (insert-file-contents batPath)(buffer-string))
+      (message "%s" (buffer-string))
+
+
+      
+      (let (vcvarsall cl build architecture outputDirectory targetName compile VS compile and goto dot slash command)
+        ;;(setq targetName (search-word-in-build-file fileContent "TARGET_NAME="))
+        ;;(message "%s" targetName)
+        ;; (setq command nil)
+        ;; (setq vcvarsall " vcvarsall ")
+        ;; (setq architecture " x64 ")
+        ;; (setq cl " cl ")
+        ;; (setq build " build ")
+        ;; (setq outputDirectory "bin")
+        ;; (setq slash "\\")
+        ;; (setq dot ".")
+        ;; (setq executableExtension "exe")
+        ;; (setq targetName (concat "Melodispelet" dot executableExtension))
+        ;; (setq VS (concat " devenv " outputDirectory slash targetName))
+        ;; (setq compile (concat outputDirectory slash targetName))
+        ;; (setq and " && ")
+        ;; (setq goto " cd ")
+        ;; (setq command (concat command goto projectPath and vcvarsall architecture and cl and build and compile and VS))
+        ;;(shell-command command))
+        (message "Project does not contain any build.bat file. No action was taken!")))
+    ))
+
+(defun find-build-file ()
+  (interactive)
+  (message "Current Directory: %s" default-directory)
+  (if (not(file-exists-p my-build-file))
+      (progn (cd "..") (find-build-file))
+    (concat default-directory "/" my-build-file)))
+
+(defun build-project ()
+  (interactive)
+  (switch-to-buffer-other-window "*compilation*")
+  (let ((temp-dir default-directory))
+    (find-build-file)
+    (compile my-build-file)
+    (setq default-directory temp-dir)))
+
+(defun alignmnet ()
+  "Align on a single equals sign (with a space either side)."
+  (interactive)
+  (align-regexp
+   (region-beginning) (region-end)
+   "\\(\\s-*\\) = " 1 0 nil))
+
+(defun start-of-indented-line ()
+  (interactive)
+  (beginning-of-line)
+  (indent-for-tab-command))
+
+
+;;-----------------------------Startup-----------------------------
 (defun my-config ()
-  ;;Disable welcome screen
+    ;;Disable welcome screen
   (setq inhibit-startup-message t)
   
   ;;Disable menu-bar
@@ -240,39 +484,20 @@
   ;Disable line wrapping
   (set-default 'truncate-lines t)
 
-  ;;Set file extensions and their correct modes
-  (setq auto-mode-alist
-        (append
-         '(("\\.cpp$" . c++-mode)
-           ("\\.h$" . c++-mode)
-           ("\\.inl" . c++-mode)) auto-mode-alist))
-
   ;;Split screen in 2 horizontally frames at start up
   (split-window-at-start-up)
 
   ;;Changing cursor style
   (set-cursor-style)
-
-  ;;Contains all font settings.
-  (set-font-style)
+  
+  ;;Maximize window
+  (w32-send-sys-command 61488)
 
   ;;NOTE, Emacs considers .h files to be C, not C++.
-  (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode)))  
+  (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+)
 
-;-----------------------------custom-----------------------------
 
-(add-hook 'window-setup-hook 'toggle-frame-maximized t)
-(add-hook 'window-setup-hook 'my-config t)
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;;-----------------------------Hooks-----------------------------
+(add-hook 'window-setup-hook 'my-config)
+(add-hook 'c-mode-common-hook 'cpp-style)
