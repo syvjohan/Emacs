@@ -54,6 +54,14 @@
 (global-set-key (kbd "C-x C-s")
   'save-current-buffer)
 
+;;insert note, name and date
+(global-set-key (kbd "C-c n")
+  'insert-note)
+
+;;insert todo, name and date
+(global-set-key (kbd "C-c t")
+  'insert-todo)
+
 ;;Switch between header and source file
 (define-key c-mode-base-map (kbd "C-c o")
   'ff-find-other-file)
@@ -71,12 +79,12 @@
   'create-struct)
 
 ;;Create MAIN FILE
-(define-key c-mode-base-map (kbd "C-c m")
+(define-key c-mode-base-map (kbd "C-c C-m")
   'create-main-file)
 
 ;;Create TYPES FILE
-(define-key c-mode-base-map (kbd "C-c t")
-  'create-types-files)
+;;(define-key c-mode-base-map (kbd "C-c C-t")
+;;  'create-types-files)
 
 ;;Insert FUNCTION COMMENT
 (define-key c-mode-base-map (kbd "C-c f")
@@ -87,7 +95,7 @@
   'insert-block-comment)    
 
 ;;Create CLASS
-(define-key c-mode-base-map (kbd "C-c c")
+(define-key c-mode-base-map (kbd "C-c C-c")
   'create-class)
 
 ;-----------------------------Prototypes-----------------------------
@@ -278,6 +286,24 @@ typedef double                real64;
       fixme-modes)
 (modify-face 'font-lock-fixme-face "Red" nil nil t nil t nil nil)
 (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
+
+(defun insert-note ()
+"insert note, my name and date at cursor position"
+(interactive)
+(insert "/*NOTE (Johan " (format-time-string "%Y-%m-%d") "):   */")
+(backward-char 4))
+
+(defun insert-todo ()
+"Insert todo, my name and date at cursor position"
+(interactive)
+(insert "/*TODO (Johan " (format-time-string "%Y-%m-%d") "):   */")
+(backward-char 4))
+
+(defun replace-word ()
+  "Query-replace whole words."
+  (interactive)
+  (let ((current-prefix-arg  t))
+    (call-interactively #'query-replace)))
 
 (defun create-main-file (path)
   (interactive "s(Create main.cpp file) Enter path: ")
