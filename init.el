@@ -34,9 +34,26 @@
 (global-set-key (kbd "<f2>")
   'open-cmd)
 
-;;cmd build
-(global-set-key (kbd "<f3>")
-  'build-cmd)
+;Compilation mode:
+(global-set-key (kbd "<f6>")
+  'compile-project)
+
+;Build mode
+(global-set-key (kbd "<f5>")
+  'run-project)
+
+;Set executable file name, do once!
+(global-set-key (kbd "<f7>")
+  'set-executableFilename)
+
+(global-set-key (kbd "<f9>")
+  'first-error)
+
+(global-set-key (kbd "<f10>")
+  'previous-error)
+
+(global-set-key (kbd "<f11>")
+  'next-error)
 
 ;;Comment marked lines
  (global-set-key (kbd "C-c k")
@@ -58,9 +75,25 @@
 (global-set-key (kbd "C-c n")
   'insert-note)
 
+;;cut out current line, no marking need to be done.
+(global-set-key (kbd "C-q")
+  'cut-out-line)
+
+;;copy curent line, no marking need to be done
+(global-set-key (kbd "M-q")
+  'copy-line)
+
 ;;insert todo, name and date
 (global-set-key (kbd "C-c t")
   'insert-todo)
+
+;;Jump to function definition
+(global-set-key (kbd "C-c j") 
+  'jump-to-function-definition)
+
+;;goto line
+(global-set-key (kbd "C-c l")
+  'goto-line)
 
 ;;Switch between header and source file
 (define-key c-mode-base-map (kbd "C-c o")
@@ -69,10 +102,6 @@
 ;;Alignment
 (define-key c-mode-base-map (kbd "C-c r")
   'alignmnet)
-
-;;Update CLASS
-(define-key c-mode-base-map (kbd "C-c u")
-  'update-class )
 
 ;;Create STRUCT
 (define-key c-mode-base-map (kbd "C-c s")
@@ -290,20 +319,20 @@ typedef double                real64;
 (defun insert-note ()
 "insert note, my name and date at cursor position"
 (interactive)
-(insert "/*NOTE (Johan " (format-time-string "%Y-%m-%d") "):   */")
+(insert "/* NOTE (Johan " (format-time-string "%Y-%m-%d") "):   */")
 (backward-char 4))
 
 (defun insert-todo ()
 "Insert todo, my name and date at cursor position"
 (interactive)
-(insert "/*TODO (Johan " (format-time-string "%Y-%m-%d") "):   */")
+(insert "/* TODO (Johan " (format-time-string "%Y-%m-%d") "):   */")
 (backward-char 4))
 
 (defun replace-word ()
   "Query-replace whole words."
   (interactive)
   (let ((current-prefix-arg  t))
-    (call-interactively #'query-replace)))
+    (call-interactively 'query-replace)))
 
 (defun create-main-file (path)
   (interactive "s(Create main.cpp file) Enter path: ")
@@ -377,21 +406,6 @@ sEnter class name: ")
         ))
     ))
 
-(defun update-class (filepath)
-  (interactive "s(Update class) Enter filePath: ")
-  (let (pathHeader pathSource)
-    (setq pathHeader (concat filepath ".h"))
-    (setq pathSource (concat filepath ".cpp"))
-    
-    (get-functions pathHeader)
-    
-                                        ;define function(s) in source file.
-                                        ;    (if (file-exists-p pathSource)
-                                        ;      append-to-file "hello" nil pathSource) ;do update
-                                        ;    (message "%s" "File does not exist"))
-    )
-  )
-
 (defun get-functions (filepath)
   (if (file-exists-p filepath) 
       (with-temp-buffer
@@ -400,56 +414,36 @@ sEnter class name: ")
         )
     (message "%s %s" "File does not exist: " filepath)))
 
-;;c:/Programmering/test
-(defun build-cmd (projectPath)
-  "Send build command to shell"
-  (interactive "s(build and compile)Write project path: ")
 
-  ;;Search build.bat file and get data
-  (let (batPath fileContent)
-    (setq batPath (concat projectPath "c:/Programmering/build.bat"))
-    (if (file-exists-p batPath)
-        (with-temp-buffer (insert-file-contents batPath)(buffer-string))
-      (message "%s" (buffer-string))
-
-
-      
-      (let (vcvarsall cl build architecture outputDirectory targetName compile VS compile and goto dot slash command)
-        ;;(setq targetName (search-word-in-build-file fileContent "TARGET_NAME="))
-        ;;(message "%s" targetName)
-        ;; (setq command nil)
-        ;; (setq vcvarsall " vcvarsall ")
-        ;; (setq architecture " x64 ")
-        ;; (setq cl " cl ")
-        ;; (setq build " build ")
-        ;; (setq outputDirectory "bin")
-        ;; (setq slash "\\")
-        ;; (setq dot ".")
-        ;; (setq executableExtension "exe")
-        ;; (setq targetName (concat "Melodispelet" dot executableExtension))
-        ;; (setq VS (concat " devenv " outputDirectory slash targetName))
-        ;; (setq compile (concat outputDirectory slash targetName))
-        ;; (setq and " && ")
-        ;; (setq goto " cd ")
-        ;; (setq command (concat command goto projectPath and vcvarsall architecture and cl and build and compile and VS))
-        ;;(shell-command command))
-        (message "Project does not contain any build.bat file. No action was taken!")))
-    ))
-
-(defun find-build-file ()
+(setq pathRoot nil) ;;Global
+(setq pathRun nil)  ;;Global
+(defun compile-project ()
   (interactive)
-  (message "Current Directory: %s" default-directory)
-  (if (not(file-exists-p my-build-file))
-      (progn (cd "..") (find-build-file))
-    (concat default-directory "/" my-build-file)))
+  (let (pathBat pathDefault)
+    ;;Build
+    (setq pathDefault default-directory)    
+    (setq index (string-match "src" pathDefault))
+    (setq pathRoot (substring pathDefault 0 index))
+    (setq pathBat (expand-file-name "build.bat" pathRoot))
+    (switch-to-buffer-other-window "*Compilation*")
+    (compile pathBat)
+    (setq default-directory pathDefault))
+    ;; TODO (Johan 2016-09-02): Implement switch buffer and recursively search files
+    ;;Run
+    (run-project))
 
-(defun build-project ()
-  (interactive)
-  (switch-to-buffer-other-window "*compilation*")
-  (let ((temp-dir default-directory))
-    (find-build-file)
-    (compile my-build-file)
-    (setq default-directory temp-dir)))
+(setq executableFilename nil) ;;Global
+;;Windows(exe)
+(defun set-executableFilename (name)
+  (interactive "sEnter executable filename: ")
+  (setq executableFilename name)
+  (concat executableFilename ".exe"))
+
+(defun run-project ()
+(interactive)
+    (setq pathRun (expand-file-name "bin" pathRoot))
+    (setq pathRun (expand-file-name executableFilename pathRun))
+    (compile pathRun))
 
 (defun alignmnet ()
   "Align on a single equals sign (with a space either side)."
@@ -463,6 +457,27 @@ sEnter class name: ")
   (beginning-of-line)
   (indent-for-tab-command))
 
+(defun jump-to-function-definition (functionName)
+  "Navigate to function definition"
+  (interactive "s(Search) Enter funtion-name: ")
+  (imenu functionName))
+
+(defun cut-out-line ()
+  "cut out current line"
+  (interactive)
+  (if current-prefix-arg
+      (progn ; not using kill-region because we don't want to include previous kill
+        (kill-new (buffer-string))
+        (delete-region (point-min) (point-max)))
+    (progn (if (use-region-p)
+               (kill-region (region-beginning) (region-end) t)
+             (kill-region (line-beginning-position) (line-beginning-position 2))))))
+
+(defun copy-line ()
+  "Copy current line"
+  (interactive)
+   (kill-ring-save (line-beginning-position) 
+                  (line-beginning-position 2)))
 
 ;;-----------------------------Startup-----------------------------
 (defun my-config ()
@@ -515,6 +530,9 @@ sEnter class name: ")
 
   ;;Changing cursor style
   (set-cursor-style)
+
+  ;;Removes marked text and appends the new input.
+  (delete-selection-mode 1)
   
   ;;Maximize window
   (w32-send-sys-command 61488)
